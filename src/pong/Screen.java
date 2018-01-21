@@ -28,7 +28,6 @@ public class Screen extends JPanel implements Runnable {
     private int xSpeed = 4;
     private int ySpeed = 4;
     public final int PADDLE_SPEED = 8;
-    public int acceleration = 0;
 
     /**
      * Constructor
@@ -82,16 +81,10 @@ public class Screen extends JPanel implements Runnable {
         // Check to see if the ball has collided with one of the paddles
         if (gameBall.getX() <= playerOne.getX() + playerOne.getWidth() && gameBall.getY() >= playerOne.getY()
                 && gameBall.getY() <= playerOne.getY() + playerOne.getHeight()) {
-            System.out.println("Hit the left paddle");
-            acceleration++;
-            xSpeed = -(xSpeed - acceleration);
-            increaseVerticalSpeed();
+            xSpeed = -xSpeed;
         } else if (gameBall.getX() >= playerTwo.getX() - gameBall.getDiameter() && gameBall.getY() >= playerTwo.getY()
                 && gameBall.getY() <= playerTwo.getY() + playerTwo.getHeight()) {
-            System.out.println("Hit the right paddle");
-            acceleration++;
-            xSpeed = -(xSpeed + acceleration);
-            increaseVerticalSpeed();
+            xSpeed = -xSpeed;
         }
 
         // Check to see if the ball has collided with the top or bottom of the screen
@@ -115,21 +108,12 @@ public class Screen extends JPanel implements Runnable {
         }
     }
 
-    private void increaseVerticalSpeed() {
-        if (ySpeed > 0) {
-            ySpeed += acceleration;
-        } else {
-            ySpeed -= acceleration;
-        }
-    }
-
     private void startNewRound() {
         score = playerOne.getPoints() + " : " + playerTwo.getPoints();
         gameBall.setY(getHeight() / 4 + generator.nextInt(25) + 1);
         playerOne.setLocation(20, getHeight() / 2 - 75 - OFFSET);
         playerTwo.setLocation(getWidth() - 40, getHeight() / 2 - 75 - OFFSET);
         ySpeed = 4;
-        acceleration = 0;
     }
 
     private void checkIfWon() {
