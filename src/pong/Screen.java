@@ -18,16 +18,16 @@ public class Screen extends JPanel implements Runnable {
     public static final int OFFSET = 10;
     public static final Color FONT_COLOR = new Color(237, 9, 130);
     public static final Font SCORE_FONT = new Font("Arial", Font.PLAIN, 24);
+    public static final int GAME_FPS = 60;
 
     public Ball gameBall;
     public Paddle playerOne;
     public Paddle playerTwo;
     private String score;
     private boolean isRunning = true;
-    private final int GAME_SPEED = 30;
-    private int xSpeed = 10;
-    private int ySpeed = 10;
-    public final int PADDLE_SPEED = 15;
+    private int xSpeed = 4;
+    private int ySpeed = 4;
+    public final int PADDLE_SPEED = 8;
     public int acceleration = 0;
 
     /**
@@ -44,13 +44,19 @@ public class Screen extends JPanel implements Runnable {
     /**
      * Updates the graphics of the game window using simple double buffering.
      */
-    public void updateGraphics() {
+    public void update() {
+        gameBall.moveHorizontally(xSpeed);
+        gameBall.moveVertically(ySpeed);
         Image updatedView = createImage(getWidth(), getHeight());
         Graphics updatedGraphics = updatedView.getGraphics();
         drawGameObjects(updatedGraphics);
         getGraphics().drawImage(updatedView, 0, 0, null);
     }
 
+    private void render() {
+        checkCollision();
+        checkIfWon();
+    }
 
     // Used to initialize the paddle for player one, the paddle for player two and the game ball.
     private void initGameObjects() {
@@ -76,11 +82,13 @@ public class Screen extends JPanel implements Runnable {
         // Check to see if the ball has collided with one of the paddles
         if (gameBall.getX() <= playerOne.getX() + playerOne.getWidth() && gameBall.getY() >= playerOne.getY()
                 && gameBall.getY() <= playerOne.getY() + playerOne.getHeight()) {
+            System.out.println("Hit the left paddle");
             acceleration++;
             xSpeed = -(xSpeed - acceleration);
             increaseVerticalSpeed();
         } else if (gameBall.getX() >= playerTwo.getX() - gameBall.getDiameter() && gameBall.getY() >= playerTwo.getY()
                 && gameBall.getY() <= playerTwo.getY() + playerTwo.getHeight()) {
+            System.out.println("Hit the right paddle");
             acceleration++;
             xSpeed = -(xSpeed + acceleration);
             increaseVerticalSpeed();
@@ -97,12 +105,12 @@ public class Screen extends JPanel implements Runnable {
         if (gameBall.getX() <= 0) {
             playerTwo.addPoint();
             gameBall.setX(getWidth() * 3 / 4 + generator.nextInt(25) + 1);
-            xSpeed = -10;
+            xSpeed = -4;
             startNewRound();
         } else if (gameBall.getX() >= getWidth() - gameBall.getDiameter()) {
             playerOne.addPoint();
             gameBall.setX(getWidth() / 4 + generator.nextInt(25) + 1);
-            xSpeed = 10;
+            xSpeed = 4;
             startNewRound();
         }
     }
@@ -120,7 +128,7 @@ public class Screen extends JPanel implements Runnable {
         gameBall.setY(getHeight() / 4 + generator.nextInt(25) + 1);
         playerOne.setLocation(20, getHeight() / 2 - 75 - OFFSET);
         playerTwo.setLocation(getWidth() - 40, getHeight() / 2 - 75 - OFFSET);
-        ySpeed = 10;
+        ySpeed = 4;
         acceleration = 0;
     }
 
@@ -151,17 +159,18 @@ public class Screen extends JPanel implements Runnable {
 
     @Override
     public void run() {
+        long lastTime = System.nanoTime();
+        double frames = 1000000000.0 / GAME_FPS;
+        double delta = 0;
         while (isRunning) {
-            gameBall.moveHorizontally(xSpeed);
-            gameBall.moveVertically(ySpeed);
-            checkCollision();
-            checkIfWon();
-            updateGraphics();
-            try {
-                Thread.sleep(GAME_SPEED); // This needs to be optimized
-            } catch (InterruptedException ex) {
-                System.err.println("Could not sleep the game thread.");
+            long now = System.nanoTime();
+            delta += (now - lastTime) / frames;
+            lastTime = now;
+            while (delta >= 1) {
+                update();
+                delta--;
             }
+            render();
         }
         showEndGameDialog();
     }
