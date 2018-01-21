@@ -90,6 +90,13 @@ public class Paddle extends GameObject {
     }
 
     /**
+     * Sets the player's points back to zero
+     */
+    public void resetPoints() {
+        points = 0;
+    }
+
+    /**
      * Moves the player up the screen
      * @param amount the amount with which to move the player up the screen
      */

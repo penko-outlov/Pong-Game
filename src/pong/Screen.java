@@ -25,6 +25,7 @@ public class Screen extends JPanel implements Runnable {
     public Paddle playerTwo;
     private String score;
     private boolean isRunning = true;
+    private boolean restart = true;
     private int xSpeed = 4;
     private int ySpeed = 4;
     public final int PADDLE_SPEED = 8;
@@ -113,7 +114,13 @@ public class Screen extends JPanel implements Runnable {
         gameBall.setY(getHeight() / 4 + generator.nextInt(25) + 1);
         playerOne.setLocation(20, getHeight() / 2 - 75 - OFFSET);
         playerTwo.setLocation(getWidth() - 40, getHeight() / 2 - 75 - OFFSET);
-        ySpeed = 4;
+    }
+
+    private void restartGame() {
+        playerOne.resetPoints();
+        playerTwo.resetPoints();
+        isRunning = true;
+        startNewRound();
     }
 
     private void checkIfWon() {
@@ -135,27 +142,30 @@ public class Screen extends JPanel implements Runnable {
     private void showEndGameDialog() {
         int playerChoice = JOptionPane.showConfirmDialog(this, getWinner(), "Game Over", JOptionPane.YES_NO_CANCEL_OPTION);
         if (playerChoice == JOptionPane.YES_OPTION) {
-            // TODO: restart the game
+            restartGame();
         } else {
+            restart = false;
             System.exit(0);
         }
     }
 
     @Override
     public void run() {
-        long lastTime = System.nanoTime();
-        double frames = 1000000000.0 / GAME_FPS;
-        double delta = 0;
-        while (isRunning) {
-            long now = System.nanoTime();
-            delta += (now - lastTime) / frames;
-            lastTime = now;
-            while (delta >= 1) {
-                update();
-                delta--;
+        while (restart) {
+            long lastTime = System.nanoTime();
+            double frames = 1000000000.0 / GAME_FPS;
+            double delta = 0;
+            while (isRunning) {
+                long now = System.nanoTime();
+                delta += (now - lastTime) / frames;
+                lastTime = now;
+                while (delta >= 1) {
+                    update();
+                    delta--;
+                }
+                render();
             }
-            render();
+            showEndGameDialog();
         }
-        showEndGameDialog();
     }
 }
